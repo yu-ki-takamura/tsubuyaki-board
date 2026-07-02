@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -76,6 +78,24 @@ class PostControllerTest {
     }
 
     @Test
+    @DisplayName("投稿一覧_投稿あり_詳細画面へのリンクを表示する")
+    void 投稿一覧_投稿あり_詳細画面へのリンクを表示する() throws Exception {
+        Post post = new Post(
+                "alice",
+                "詳細リンク付きの投稿です",
+                Instant.parse("2026-05-23T10:00:00Z"));
+        ReflectionTestUtils.setField(post, "id", 42L);
+        given(postService.latest()).willReturn(List.of(post));
+
+        mockMvc.perform(get("/posts"))
+                .andExpect(status().isOk())
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString())
+                        .contains("id=\"post-42\"")
+                        .contains("href=\"/posts/detail/42\"")
+                        .contains("詳細"));
+    }
+
+    @Test
     @DisplayName("投稿フォーム_一覧から遷移するとき_posts_formへのリンクを表示する")
     void 投稿フォーム_一覧から遷移するとき_posts_formへのリンクを表示する() throws Exception {
         given(postService.latest()).willReturn(Collections.emptyList());
@@ -84,6 +104,41 @@ class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(result -> assertThat(result.getResponse().getContentAsString())
                         .contains("href=\"/posts/form\""));
+    }
+
+    @Test
+    @DisplayName("投稿詳細_存在するIDの場合_posts_detailに投稿者内容投稿日を表示する")
+    void 投稿詳細_存在するIDの場合_posts_detailに投稿者内容投稿日を表示する() throws Exception {
+        Post post = new Post(
+                "alice",
+                "詳細画面に表示する投稿です",
+                Instant.parse("2026-05-23T10:00:00Z"));
+        ReflectionTestUtils.setField(post, "id", 42L);
+        given(postService.findById(42L)).willReturn(Optional.of(post));
+
+        mockMvc.perform(get("/posts/detail/42"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("posts/detail"))
+                .andExpect(model().attribute("post", post))
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString())
+                        .containsSubsequence("alice", "詳細画面に表示する投稿です", "2026-05-23 19:00"));
+
+        verify(postService).findById(42L);
+    }
+
+    @Test
+    @DisplayName("投稿詳細_存在しないIDの場合_404エラー画面を表示する")
+    void 投稿詳細_存在しないIDの場合_404エラー画面を表示する() throws Exception {
+        given(postService.findById(999L)).willReturn(Optional.empty());
+
+        mockMvc.perform(get("/posts/detail/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error/404"))
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString())
+                        .contains("404 エラー")
+                        .contains("投稿が見つかりません"));
+
+        verify(postService).findById(999L);
     }
 
     @Test

@@ -39,4 +39,20 @@ class PostRepositoryTest {
         assertThat(latest.get(49).getBody()).isEqualTo("body1");
         assertThat(latest).extracting(Post::getCreatedAt).isSortedAccordingTo((left, right) -> right.compareTo(left));
     }
+
+    @Test
+    @DisplayName("投稿詳細_IDで検索すると保存済み投稿を返す")
+    void 投稿詳細_IDで検索すると保存済み投稿を返す() {
+        Post saved = postRepository.save(new Post(
+                "alice",
+                "詳細取得する投稿です",
+                Instant.parse("2026-05-23T10:00:00Z")));
+
+        assertThat(postRepository.findById(saved.getId()))
+                .hasValueSatisfying(post -> {
+                    assertThat(post.getAuthor()).isEqualTo("alice");
+                    assertThat(post.getBody()).isEqualTo("詳細取得する投稿です");
+                    assertThat(post.getCreatedAt()).isEqualTo(Instant.parse("2026-05-23T10:00:00Z"));
+                });
+    }
 }
