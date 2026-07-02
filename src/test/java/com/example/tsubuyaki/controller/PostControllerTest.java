@@ -1,7 +1,7 @@
 package com.example.tsubuyaki.controller;
 
+import com.example.tsubuyaki.domain.Post;
 import com.example.tsubuyaki.service.PostService;
-import com.example.tsubuyaki.web.dto.PostView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,10 +62,10 @@ class PostControllerTest {
     @Test
     @DisplayName("投稿一覧_投稿あり_投稿者内容投稿日の順に表示する")
     void 投稿一覧_投稿あり_投稿者内容投稿日の順に表示する() throws Exception {
-        PostView post = new PostView(
+        Post post = new Post(
                 "alice",
                 "これはテスト投稿です",
-                LocalDateTime.parse("2026-05-23T19:00:00"));
+                Instant.parse("2026-05-23T10:00:00Z"));
         given(postService.latest()).willReturn(List.of(post));
 
         mockMvc.perform(get("/posts"))

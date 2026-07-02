@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -27,13 +27,13 @@ public class Post {
     private String body;
 
     @Column(name = "created_at", nullable = false)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     protected Post() {
         // JPA
     }
 
-    public Post(String author, String body, OffsetDateTime createdAt) {
+    public Post(String author, String body, Instant createdAt) {
         this.author = author;
         this.body = body;
         this.createdAt = createdAt;
@@ -51,7 +51,7 @@ public class Post {
         return body;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
